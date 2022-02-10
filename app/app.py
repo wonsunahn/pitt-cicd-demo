@@ -1,7 +1,7 @@
 import json
 from googletrans import Translator
 
-def getMessage(lang):
+def GetMessage(lang):
     message = "Hello World"
     return message
 

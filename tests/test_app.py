@@ -1,7 +1,7 @@
 from contextlib import nullcontext
 from app.app import handler, getMessage
 
-def test_getMessage():
+def test_GetMessage():
     assert getMessage('en') == "Hello World"
 
 def test_handler():
