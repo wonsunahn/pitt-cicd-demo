@@ -1,8 +1,8 @@
 from contextlib import nullcontext
-from app.app import handler, getMessage
+from app.app import handler, GetMessage
 
 def test_GetMessage():
-    assert getMessage('en') == "Hello World"
+    assert GetMessage('en') == "Hello World"
 
 def test_handler():
     event = {}

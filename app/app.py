@@ -10,7 +10,7 @@ def handler(event, context):
         lang = event['queryStringParameters']['lang']
 
         body = {}
-        body['message'] = getMessage(lang)
+        body['message'] = GetMessage(lang)
         return {
             'statusCode': 200,
             'headers': {
