@@ -1,7 +1,7 @@
 import json
 from googletrans import Translator
 
-def GetMessage(lang):
+def get_message(lang):
     message = "Hello World"
     return message
 
@@ -10,7 +10,7 @@ def handler(event, context):
         lang = event['queryStringParameters']['lang']
 
         body = {}
-        body['message'] = GetMessage(lang)
+        body['message'] = get_message(lang)
         return {
             'statusCode': 200,
             'headers': {
