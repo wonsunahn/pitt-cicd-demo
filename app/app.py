@@ -1,5 +1,24 @@
+import json
+from googletrans import Translator
+
+def getMessage(lang):
+    message = "Hello World"
+    return message
+
 def handler(event, context):
-    message = 'Hello {} {}!'.format(event['first_name'], event['last_name'])  
-    return { 
-        'message' : message
-    }
+    if event['queryStringParameters']:
+        lang = event['queryStringParameters']['lang']
+
+        body = {}
+        body['message'] = getMessage(lang)
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+            },
+            'body': json.dumps(body),
+        }
+    else:
+        return {
+            'statusCode': 422
+        }
