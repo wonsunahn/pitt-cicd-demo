@@ -29,7 +29,7 @@ jobs:
       
       - name: Running pytest
         run: |
-          pytest --junitxml=test-results/test-results.xml --cov --cov-report=xml --cov-report=html
+          pytest --junitxml=TESTS-pytest.xml --cov --cov-report=xml --cov-report=html
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
@@ -59,7 +59,7 @@ jobs:
           soft_fail: true
 
       - name: Write Checkov Output
-        run: echo $CHECKOV_RESULTS > test-results/checkov-tests.xml
+        run: echo $CHECKOV_RESULTS > TESTS-checkov.xml
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
@@ -71,5 +71,5 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: always()
         with:
-          files: test-results/**/*.xml
-          token: ${{ secrets.GITHUB_TOKEN }}
+          files: ./**/TESTS-*.xml
+          github_token: ${{ secrets.GITHUB_TOKEN }}
