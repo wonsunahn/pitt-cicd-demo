@@ -2,15 +2,6 @@ data "aws_caller_identity" "current" {}
 
 data "aws_region" "current" {}
 
-resource "aws_ecr_repository" "repo" {
-  name                 = "pitt-cicd-demo"
-  image_tag_mutability = "MUTABLE"
-
-  image_scanning_configuration {
-    scan_on_push = true
-  }
-}
-
 resource "aws_iam_role" "lambda_exec" {
   name = "serverless_example_lambda"
 
@@ -36,7 +27,7 @@ resource "aws_lambda_function" "function" {
   function_name = "pitt-cicd-demo"
   description   = "My awesome lambda function"
   role = aws_iam_role.lambda_exec.arn
-  image_uri    = "${aws_ecr_repository.repo.repository_url}:${var.image_tag}"
+  image_uri    = "${var.container_registry_url}:${var.image_tag}"
   package_type = "Image"
 
 }
