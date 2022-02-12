@@ -1,11 +1,10 @@
-name: CI
+name: Test
 on:
   push:
-    branches:
-      - dev
+    branches-ignore:
+      - main
 jobs:
   test:
-    name: Test
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -39,10 +38,12 @@ jobs:
       - name: Terraform Format
         id: fmt
         run: terraform fmt -check
+        working-directory: ./infrastructure
 
       - name: Terraform Validate
         id: validate
         run: terraform validate -no-color
+        working-directory: ./infrastructure
 
       - uses: actions/upload-artifact@v2
         with:
