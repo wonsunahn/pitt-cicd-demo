@@ -117,6 +117,11 @@ jobs:
         run: terraform fmt -check
         working-directory: ./infrastructure
 
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        working-directory: ./infrastructure
+
       - name: Terraform Validate
         id: validate
         run: terraform validate -no-color
@@ -180,11 +185,25 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ secrets.TF_VAR_ASSUME_ROLE_ARN }}
+          role-duration-seconds: 900
+          aws-region: us-east-1
     
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
           terraform_version: 1.0.11
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        working-directory: ./infrastructure
 
       - name: Terraform Apply
         env:
