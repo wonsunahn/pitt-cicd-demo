@@ -26,9 +26,9 @@ resource "aws_lambda_function" "function" {
 
   function_name = "pitt-cicd-demo"
   description   = "My awesome lambda function"
-  role = aws_iam_role.lambda_exec.arn
-  image_uri    = "${var.container_registry_url}:${var.image_tag}"
-  package_type = "Image"
+  role          = aws_iam_role.lambda_exec.arn
+  image_uri     = "${var.container_registry_url}:${var.image_tag}"
+  package_type  = "Image"
 
 }
 
