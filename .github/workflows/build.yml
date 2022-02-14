@@ -99,13 +99,15 @@ jobs:
           TF_WORKSPACE: test
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        run: terraform output api_endpoint
+        run: echo "::set-outpu name=api_endpoint::$(terraform output api_endpoint)"
         working-directory: ./infrastructure
 
-      # - name: Run k6 test
-      #   uses: k6io/action@v0.1
-      #   with:
-      #     filename: tests/performance/performanc3e.js
+      - name: Run k6 test
+        uses: k6io/action@v0.1
+        env:
+          API_ENDPOINT: ${{ steps.output.tf_output.api_endpoint }}
+        with:
+          filename: tests/performance/performance.js
 
   testenvdestroy:
     needs: performance
