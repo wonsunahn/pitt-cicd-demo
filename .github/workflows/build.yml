@@ -72,7 +72,7 @@ jobs:
 
   performance:
     needs: testenvcreate
-    name: Test Environment
+    name: Performance Test
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -96,7 +96,7 @@ jobs:
       #     filename: tests/performance/performanc3e.js
 
   testenvdestroy:
-    needs: testenvcreate
+    needs: performance
     name: Test Environment Destroy
     runs-on: ubuntu-latest
     steps:
