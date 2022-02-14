@@ -1,8 +1,10 @@
 import json
+import time
 from googletrans import Translator
 
 def get_message(lang):
     message = "Hello World"
+    time.sleep(1)
     return message
 
 def handler(event, context):
