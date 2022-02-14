@@ -103,17 +103,20 @@ jobs:
         working-directory: ./infrastructure
 
       - name: Run k6 test
-        id: loadtest
         uses: grafana/k6-action@v0.2.0
         with:
           filename: tests/performance/performance.js
         env:
           API_ENDPOINT: ${{ steps.tf_output.outputs.api_endpoint }}
 
+      - name: Get Load Test Result
+        id: loadtest
+        run: echo ::set-output name=RESULT::$(cat loadtest-results.txt)
+
       - name: Update Pull Request
         uses: actions/github-script@0.9.0
         env:
-          RESULT: "${{ steps.loadtest.outputs.stdout }}"
+          RESULT: "${{ steps.loadtest.outputs.RESULT }}"
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
