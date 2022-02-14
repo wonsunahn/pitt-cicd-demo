@@ -103,13 +103,38 @@ jobs:
         working-directory: ./infrastructure
 
       - name: Run k6 test
+        id: loadtest
         uses: grafana/k6-action@v0.2.0
         with:
           filename: tests/performance/performance.js
         env:
           API_ENDPOINT: ${{ steps.tf_output.outputs.api_endpoint }}
 
-      - name: Publish Unit Test Results
+      - name: Update Pull Request
+        uses: actions/github-script@0.9.0
+        env:
+          RESULT: "${{ steps.loadtest.outputs.stdout }}"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `<details><summary>Load Test Results</summary>
+
+            \`\`\`\n
+            ${process.env.RESULT}
+            \`\`\`
+
+            </details>
+
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+
+      - name: Publish Load Test Results
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: always()
         with:
@@ -148,6 +173,23 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: terraform destroy -auto-approve
         working-directory: ./infrastructure
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ secrets.TF_VAR_ASSUME_ROLE_ARN }}
+          role-duration-seconds: 900
+          aws-region: us-east-1
+
+      - name: Clean Up Test Image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: pitt-cicd-demo
+          IMAGE_TAG: ${{ github.run_id }}
+        run: |
+          aws ecr batch-delete-image --repository-name $ECR_REPOSITORY --image-ids imageTag=$IMAGE_TAG
 
   terraform:
     needs: testenvdestroy
