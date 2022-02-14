@@ -9,10 +9,9 @@ export const options = {
     },
 };
 export default function () {
-    let res = http.get('${__ENV.API_ENDPOINT}/test/getHello', { tags: { name: '01_Home' } });
+    let res = http.get(`${__ENV.API_ENDPOINT}/test/getHello?lang=en`, { tags: { name: '01_Home' } });
     check(res, {
         'is status 200': (r) => r.status === 200,
-        'text verification': (r) => r.body.include("Hello World")
     });
     sleep(Math.random() * 5);
 }
