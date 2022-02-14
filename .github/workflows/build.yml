@@ -99,7 +99,7 @@ jobs:
           TF_WORKSPACE: test
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        run: echo "::set-output name=api_endpoint::$(terraform output api_endpoint)"
+        run: echo ::set-output name=api_endpoint::$(terraform output api_endpoint)
         working-directory: ./infrastructure
 
       - name: Run k6 test
