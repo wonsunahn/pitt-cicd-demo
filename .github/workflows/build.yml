@@ -107,7 +107,7 @@ jobs:
         with:
           filename: tests/performance/performance.js
         env:
-          API_ENDPOINT: ${{ steps.outputs.tf_output.api_endpoint }}
+          API_ENDPOINT: ${{ steps.tf_output.outputs.api_endpoint }}
 
   testenvdestroy:
     needs: performance
