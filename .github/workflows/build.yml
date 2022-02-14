@@ -119,6 +119,7 @@ jobs:
   testenvdestroy:
     needs: performance
     name: Test Environment Destroy
+    if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
