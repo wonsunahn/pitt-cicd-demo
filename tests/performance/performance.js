@@ -9,7 +9,8 @@ export const options = {
     },
 };
 export default function () {
-    let res = http.get(`${__ENV.API_ENDPOINT}/test/getHello?lang=en`, { tags: { name: '01_Home' } });
+    let urlString = __ENV.API_ENDPOINT.replace(/["]+/g, '');
+    let res = http.get(`${urlString}/test/getHello?lang=en`, { tags: { name: '01_Home' } });
     check(res, {
         'is status 200': (r) => r.status === 200,
     });
