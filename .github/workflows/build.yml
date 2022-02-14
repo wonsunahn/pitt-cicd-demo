@@ -40,7 +40,7 @@ jobs:
 
   testenvcreate:
     needs: container
-    name: Test Environment
+    name: Test Environment Create
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -70,22 +70,34 @@ jobs:
         run: terraform apply -auto-approve
         working-directory: ./infrastructure
 
-    # performance:
-    #   needs: testenvcreate
-    #   name: Test Environment
-    #   runs-on: ubuntu-latest
-    #   steps:
-    #     - name: Check out code
-    #       uses: actions/checkout@v2
+  performance:
+    needs: testenvcreate
+    name: Test Environment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
 
-    #     - name: Run k6 test
-    #       uses: k6io/action@v0.1
-    #       with:
-    #         filename: tests/performance/performanc3e.js
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.0.11
+          terraform_wrapper: false
+
+      - name: Terraform Output
+        id: tf_output
+        env:
+          TF_WORKSPACE: test
+        run: terraform output api_endpoint
+
+      # - name: Run k6 test
+      #   uses: k6io/action@v0.1
+      #   with:
+      #     filename: tests/performance/performanc3e.js
 
   testenvdestroy:
     needs: testenvcreate
-    name: Test Environment
+    name: Test Environment Destroy
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -117,7 +129,7 @@ jobs:
 
   terraform:
     needs: testenvdestroy
-    name: Terraform
+    name: Terraform Plan
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
