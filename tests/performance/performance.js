@@ -21,7 +21,7 @@ export default function () {
 export function handleSummary(data) {
     return {
         'stdout': textSummary(data, { indent: ' ', enableColors: true }),
-        './loadtest-results.txt': textSummary(data, { indent: ' ', enableColors: true }),
+        './loadtest-results.txt': textSummary(data, { indent: '\n ', enableColors: false }),
         './TESTS-loadtest-results.xml': jUnit(data),
     }
 }
