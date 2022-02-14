@@ -84,6 +84,15 @@ jobs:
           terraform_version: 1.0.11
           terraform_wrapper: false
 
+      - name: Terraform Init
+        id: init
+        env:
+          TF_WORKSPACE: test
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: terraform init
+        working-directory: ./infrastructure
+        
       - name: Terraform Output
         id: tf_output
         env:
