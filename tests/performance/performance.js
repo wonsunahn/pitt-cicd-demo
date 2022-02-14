@@ -1,5 +1,6 @@
 import http from 'k6/http';
 import { sleep, check } from 'k6';
+import { jUnit, textSummary } from 'https://jslib.k6.io/k6-summary/0.0.1/index.js';
 
 export const options = {
     duration: '1m',
@@ -16,4 +17,11 @@ export default function () {
         'text verification': (r) => r.body.includes("Hello World")
     });
     sleep(Math.random() * 5);
+}
+export function handleSummary(data) {
+    let filepath = `./${__ENV.TESTRESULT_FILENAME}-result.xml`;
+    return {
+        'stdout': textSummary(data, { indent: ' ', enableColors: true }),
+        './TESTS-loadtest-results.xml': jUnit(data),
+    }
 }

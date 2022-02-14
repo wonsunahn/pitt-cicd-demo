@@ -109,6 +109,13 @@ jobs:
         env:
           API_ENDPOINT: ${{ steps.tf_output.outputs.api_endpoint }}
 
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: ./**/TESTS-*.xml
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
   testenvdestroy:
     needs: performance
     name: Test Environment Destroy
