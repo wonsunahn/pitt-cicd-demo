@@ -105,7 +105,7 @@ jobs:
       - name: Run k6 test
         uses: k6io/action@v0.1
         env:
-          API_ENDPOINT: ${{ steps.output.tf_output.api_endpoint }}
+          API_ENDPOINT: ${{ steps.outputs.tf_output.api_endpoint }}
         with:
           filename: tests/performance/performance.js
 
