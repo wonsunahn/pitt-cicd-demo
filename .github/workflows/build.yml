@@ -9,7 +9,7 @@ on:
       - main
 jobs:
   container:
-    name: Container Image
+    name: Test Container Image
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -33,20 +33,131 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: pitt-cicd-demo
-          IMAGE_TAG: latest
+          IMAGE_TAG: ${{ github.run_id }}
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-  terraform:
+  testenvcreate:
     needs: container
-    name: Terraform
+    name: Test Environment Create
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.0.11
+
+      - name: Terraform Init
+        id: init
+        env:
+          TF_WORKSPACE: test
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: terraform init
+        working-directory: ./infrastructure
+
+      - name: Terraform Apply
+        env:
+          TF_WORKSPACE: test
+          TF_VAR_assume_role_arn: ${{ secrets.TF_VAR_ASSUME_ROLE_ARN }}
+          TF_VAR_image_tag: ${{ github.run_id }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: terraform apply -auto-approve
+        working-directory: ./infrastructure
+
+  performance:
+    needs: testenvcreate
+    name: Performance Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.0.11
+          terraform_wrapper: false
+
+      - name: Terraform Init
+        id: init
+        env:
+          TF_WORKSPACE: test
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: terraform init
+        working-directory: ./infrastructure
+
+      - name: Terraform Output
+        id: tf_output
+        env:
+          TF_WORKSPACE: test
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: echo ::set-output name=api_endpoint::$(terraform output api_endpoint)
+        working-directory: ./infrastructure
+
+      - name: Run k6 test
+        uses: grafana/k6-action@v0.2.0
+        with:
+          filename: tests/performance/performance.js
+        env:
+          API_ENDPOINT: ${{ steps.tf_output.outputs.api_endpoint }}
+
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: ./**/TESTS-*.xml
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  testenvdestroy:
+    needs: performance
+    name: Test Environment Destroy
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.0.11
+
+      - name: Terraform Init
+        id: init
+        env:
+          TF_WORKSPACE: test
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: terraform init
+        working-directory: ./infrastructure
+
+      - name: Terraform Destroy
+        env:
+          TF_WORKSPACE: test
+          TF_VAR_assume_role_arn: ${{ secrets.TF_VAR_ASSUME_ROLE_ARN }}
+          TF_VAR_image_tag: ${{ github.run_id }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: terraform destroy -auto-approve
+        working-directory: ./infrastructure
+
+  terraform:
+    needs: testenvdestroy
+    name: Terraform Plan
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Check out code
         uses: actions/checkout@v2
-        
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
@@ -75,7 +186,6 @@ jobs:
 
       - name: Terraform Plan
         id: plan
-        if: github.event_name == 'pull_request'
         run: terraform plan -no-color
         working-directory: ./infrastructure
         env:
@@ -87,7 +197,6 @@ jobs:
 
       - name: Update Pull Request
         uses: actions/github-script@0.9.0
-        if: github.event_name == 'pull_request'
         env:
           PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
         with:
