@@ -41,7 +41,7 @@ jobs:
   testenvcreate:
     needs: container
     name: Test Environment Create
-    environemt: test
+    environment: test
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
