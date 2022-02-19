@@ -10,3 +10,7 @@ variable "container_registry_url" {
 variable "image_tag" {
   type = string
 }
+
+variable "environment" {
+  type = string
+}

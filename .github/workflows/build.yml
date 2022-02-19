@@ -65,6 +65,7 @@ jobs:
         env:
           TF_WORKSPACE: pitt-cicd-demo-test
           TF_VAR_image_tag: ${{ github.run_id }}
+          TF_VAR_environment: test
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: terraform apply -auto-approve
@@ -173,6 +174,7 @@ jobs:
         env:
           TF_WORKSPACE: pitt-cicd-demo-test
           TF_VAR_image_tag: ${{ github.run_id }}
+          TF_VAR_environment: test
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: terraform destroy -auto-approve
@@ -218,7 +220,7 @@ jobs:
       - name: Terraform Init
         id: init
         env:
-          TF_WORKSPACE: pitt-cicd-demo-test
+          TF_WORKSPACE: pitt-cicd-demo-prod
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: terraform init
@@ -227,7 +229,7 @@ jobs:
       - name: Terraform Validate
         id: validate
         env:
-          TF_WORKSPACE: pitt-cicd-demo-test
+          TF_WORKSPACE: pitt-cicd-demo-prod
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: terraform validate -no-color
@@ -238,8 +240,9 @@ jobs:
         run: terraform plan -no-color
         working-directory: ./infrastructure
         env:
-          TF_WORKSPACE: pitt-cicd-demo-test
+          TF_WORKSPACE: pitt-cicd-demo-prod
           TF_VAR_image_tag: latest
+          TF_VAR_environment: prod
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         continue-on-error: true
