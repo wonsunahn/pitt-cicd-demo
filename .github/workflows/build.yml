@@ -56,6 +56,8 @@ jobs:
         id: init
         env:
           TF_WORKSPACE: pitt-cicd-demo-test
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: terraform init
         working-directory: ./infrastructure
 
@@ -63,6 +65,8 @@ jobs:
         env:
           TF_WORKSPACE: pitt-cicd-demo-test
           TF_VAR_image_tag: ${{ github.run_id }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: terraform apply -auto-approve
         working-directory: ./infrastructure
 
@@ -85,6 +89,8 @@ jobs:
         id: init
         env:
           TF_WORKSPACE: pitt-cicd-demo-test
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: terraform init
         working-directory: ./infrastructure
 
@@ -92,6 +98,8 @@ jobs:
         id: tf_output
         env:
           TF_WORKSPACE: pitt-cicd-demo-test
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: echo ::set-output name=api_endpoint::$(terraform output api_endpoint)
         working-directory: ./infrastructure
 
@@ -156,6 +164,8 @@ jobs:
         id: init
         env:
           TF_WORKSPACE: pitt-cicd-demo-test
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: terraform init
         working-directory: ./infrastructure
 
@@ -163,6 +173,8 @@ jobs:
         env:
           TF_WORKSPACE: pitt-cicd-demo-test
           TF_VAR_image_tag: ${{ github.run_id }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: terraform destroy -auto-approve
         working-directory: ./infrastructure
 
@@ -207,6 +219,8 @@ jobs:
         id: init
         env:
           TF_WORKSPACE: pitt-cicd-demo-test
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: terraform init
         working-directory: ./infrastructure
 
@@ -214,6 +228,8 @@ jobs:
         id: validate
         env:
           TF_WORKSPACE: pitt-cicd-demo-test
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: terraform validate -no-color
         working-directory: ./infrastructure
 
@@ -224,6 +240,8 @@ jobs:
         env:
           TF_WORKSPACE: pitt-cicd-demo-test
           TF_VAR_image_tag: latest
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         continue-on-error: true
 
       - name: Update Pull Request
