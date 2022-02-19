@@ -2,8 +2,6 @@ data "aws_caller_identity" "current" {}
 
 data "aws_region" "current" {}
 
-resource "random_pet" "name" {}
-
 resource "aws_iam_role" "lambda_exec" {
   name = "serverless_example_lambda"
 
@@ -26,7 +24,7 @@ EOF
 
 resource "aws_lambda_function" "function" {
 
-  function_name = "pitt-cicd-demo-${random_pet.name}"
+  function_name = "pitt-cicd-demo-${var.environment}"
   description   = "My awesome lambda function"
   role          = aws_iam_role.lambda_exec.arn
   image_uri     = "${var.container_registry_url}:${var.image_tag}"
@@ -35,7 +33,7 @@ resource "aws_lambda_function" "function" {
 }
 
 resource "aws_apigatewayv2_api" "lambda" {
-  name          = "serverless-lambda-gw-${random_pet.name}"
+  name          = "serverless-lambda-gw-${var.environment}"
   protocol_type = "HTTP"
 }
 
