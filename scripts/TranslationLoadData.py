@@ -16,6 +16,6 @@ def load_translations(translations, dynamodb=None):
 
 
 if __name__ == '__main__':
-    with open("translations.json") as json_file:
+    with open("data/translations.json") as json_file:
         translation_list = json.load(json_file, parse_float=Decimal)
     load_translations(translation_list)

@@ -49,24 +49,20 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_version: 1.0.11
+          terraform_version: 1.1.6
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
       - name: Terraform Init
         id: init
         env:
-          TF_WORKSPACE: test
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          TF_WORKSPACE: pitt-cicd-demo-test
         run: terraform init
         working-directory: ./infrastructure
 
       - name: Terraform Apply
         env:
-          TF_WORKSPACE: test
-          TF_VAR_assume_role_arn: ${{ secrets.TF_VAR_ASSUME_ROLE_ARN }}
+          TF_WORKSPACE: pitt-cicd-demo-test
           TF_VAR_image_tag: ${{ github.run_id }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: terraform apply -auto-approve
         working-directory: ./infrastructure
 
@@ -81,24 +77,21 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_version: 1.0.11
+          terraform_version: 1.1.6
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
           terraform_wrapper: false
 
       - name: Terraform Init
         id: init
         env:
-          TF_WORKSPACE: test
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          TF_WORKSPACE: pitt-cicd-demo-test
         run: terraform init
         working-directory: ./infrastructure
 
       - name: Terraform Output
         id: tf_output
         env:
-          TF_WORKSPACE: test
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          TF_WORKSPACE: pitt-cicd-demo-test
         run: echo ::set-output name=api_endpoint::$(terraform output api_endpoint)
         working-directory: ./infrastructure
 
@@ -156,24 +149,20 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_version: 1.0.11
+          terraform_version: 1.1.6
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
       - name: Terraform Init
         id: init
         env:
-          TF_WORKSPACE: test
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          TF_WORKSPACE: pitt-cicd-demo-test
         run: terraform init
         working-directory: ./infrastructure
 
       - name: Terraform Destroy
         env:
-          TF_WORKSPACE: test
-          TF_VAR_assume_role_arn: ${{ secrets.TF_VAR_ASSUME_ROLE_ARN }}
+          TF_WORKSPACE: pitt-cicd-demo-test
           TF_VAR_image_tag: ${{ github.run_id }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: terraform destroy -auto-approve
         working-directory: ./infrastructure
 
@@ -182,8 +171,8 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          role-to-assume: ${{ secrets.TF_VAR_ASSUME_ROLE_ARN }}
-          role-duration-seconds: 900
+          #role-to-assume: ${{ secrets.TF_VAR_ASSUME_ROLE_ARN }}
+          #role-duration-seconds: 900
           aws-region: us-east-1
 
       - name: Clean Up Test Image
@@ -206,7 +195,8 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_version: 1.0.11
+          terraform_version: 1.1.6
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
       - name: Terraform Format
         id: fmt
@@ -216,16 +206,14 @@ jobs:
       - name: Terraform Init
         id: init
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          TF_WORKSPACE: pitt-cicd-demo-test
         run: terraform init
         working-directory: ./infrastructure
 
       - name: Terraform Validate
         id: validate
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          TF_WORKSPACE: pitt-cicd-demo-test
         run: terraform validate -no-color
         working-directory: ./infrastructure
 
@@ -234,10 +222,8 @@ jobs:
         run: terraform plan -no-color
         working-directory: ./infrastructure
         env:
-          TF_VAR_assume_role_arn: ${{ secrets.TF_VAR_ASSUME_ROLE_ARN }}
+          TF_WORKSPACE: pitt-cicd-demo-test
           TF_VAR_image_tag: latest
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         continue-on-error: true
 
       - name: Update Pull Request

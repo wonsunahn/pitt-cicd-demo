@@ -102,8 +102,28 @@ resource "aws_dynamodb_table" "translations" {
     type = "S"
   }
 
-  attribute {
-    name = "message"
-    type = "S"
-  }
+}
+
+resource "aws_dynamodb_table_item" "en" {
+  table_name = aws_dynamodb_table.translations.name
+  hash_key = aws_dynamodb_table.translations.hash_key
+  
+  item = <<ITEM
+{
+  "lang": {"S": "en"},
+  "message": {"S": "Hello World"}
+}
+ITEM
+}
+
+resource "aws_dynamodb_table_item" "es" {
+  table_name = aws_dynamodb_table.translations.name
+  hash_key = aws_dynamodb_table.translations.hash_key
+  
+  item = <<ITEM
+{
+  "lang": {"S": "es"},
+  "message": {"S": "Hola Mundo"}
+}
+ITEM
 }
