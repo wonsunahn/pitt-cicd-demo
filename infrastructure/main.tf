@@ -92,3 +92,18 @@ resource "aws_lambda_permission" "api_gw" {
   source_arn = "arn:aws:execute-api:${data.aws_region.current.name}:${data.aws_caller_identity.current.id}:${aws_apigatewayv2_api.lambda.id}/*/*/*"
 }
 
+resource "aws_dynamodb_table" "translations" {
+  name         = "translations"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "lang"
+
+  attribute {
+    name = "lang"
+    type = "S"
+  }
+
+  attribute {
+    name = "message"
+    type = "S"
+  }
+}

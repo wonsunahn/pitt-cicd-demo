@@ -1,26 +1,39 @@
 import json
 import time
-from googletrans import Translator
+import boto3
+from boto3.dynamodb.conditions import Key
 
-def get_message(lang):
-    message = "Hello World"
+def get_message(lang, dynamodb=None):
+    if not dynamodb:
+        dynamodb = boto3.resource('dynamodb', endpoint_url="http://localhost:8000")
+    
+    table = dynamodb.Table('Translations')
+    response = table.query(
+        KeyConditionExpression=Key('lang').eq(lang)
+    )
     #time.sleep(1)
-    return message
+    return response['Items']
 
 def handler(event, context):
-    if event['queryStringParameters']:
+    if not exists event['queryStringParameters']['lang']:
+        lang = 'en'
+    else:
         lang = event['queryStringParameters']['lang']
 
-        body = {}
-        body['message'] = get_message(lang)
+    try:
         return {
             'statusCode': 200,
             'headers': {
                 'Content-Type': 'application/json',
             },
-            'body': json.dumps(body),
+            'body': json.dumps(get_message(lang)),
         }
-    else:
+    except:
         return {
-            'statusCode': 422
+            'statusCode': 500
         }
+
+if __name__ == '__main__':
+    lang = 'en'
+    message = get_message(lang)
+    print(message)

@@ -2,4 +2,10 @@
 
 # pitt-cicd-demo
 
-test test
+## Prerequisites
+
++ k6
++ checkov
++ terraform
+
+co
