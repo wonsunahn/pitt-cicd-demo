@@ -75,6 +75,7 @@ jobs:
   performance:
     needs: testenvcreate
     name: Performance Test
+    environment: test
     runs-on: ubuntu-latest
     steps:
       - name: Check out code

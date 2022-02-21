@@ -12,6 +12,7 @@ pytest = "*"
 pytest-cov = "*"
 checkov = "*"
 black = "*"
+pytest-mock = "*"
 
 [requires]
 python_version = "3"
