@@ -56,11 +56,6 @@ jobs:
       #   run: terraform validate -no-color
       #   working-directory: ./infrastructure
 
-      - uses: actions/upload-artifact@v2
-        with:
-          name: code-coverage
-          path: htmlcov
-
       - name: Test with Checkov
         id: checkov
         uses: bridgecrewio/checkov-action@master

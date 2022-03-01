@@ -34,7 +34,8 @@ jobs:
         env:
           TF_WORKSPACE: ${{ secrets.TF_WORKSPACE }}
           TF_VAR_environment: prod
-          TF_VAR_image_tage: latest
+          TF_VAR_image_tag: latest
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: terraform apply -auto-approve
+        working-directory: ./infrastructure
