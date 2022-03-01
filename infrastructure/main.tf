@@ -3,7 +3,7 @@ data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
 resource "aws_iam_role" "lambda_exec" {
-  name = "serverless_example_lambda"
+  name = "serverless_example_lambda_${var.environment}"
 
   assume_role_policy = <<EOF
 {
@@ -29,6 +29,12 @@ resource "aws_lambda_function" "function" {
   role          = aws_iam_role.lambda_exec.arn
   image_uri     = "${var.container_registry_url}:${var.image_tag}"
   package_type  = "Image"
+
+  environment {
+    variables = {
+      TableName = aws_dynamodb_table.translations.name
+    }
+  }
 
 }
 
@@ -93,7 +99,7 @@ resource "aws_lambda_permission" "api_gw" {
 }
 
 resource "aws_dynamodb_table" "translations" {
-  name           = "translations"
+  name           = "translations-${var.environment}"
   billing_mode   = "PROVISIONED"
   read_capacity  = 5
   write_capacity = 5
