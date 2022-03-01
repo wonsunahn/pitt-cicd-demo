@@ -4,9 +4,6 @@ import time
 import boto3
 
 TABLE_NAME = os.environ["TableName"]
-# Get the environment, so we can run appropriate scripts
-IS_DEVELOPMENT = os.environ["STAGE"] == "DEVELOPMENT"
-
 
 class Error(Exception):
     """Base class for other exceptions"""
