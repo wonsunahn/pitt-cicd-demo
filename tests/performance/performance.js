@@ -19,9 +19,9 @@ export default function () {
     sleep(Math.random() * 5);
 }
 export function handleSummary(data) {
-    let filepath = `./${__ENV.TESTRESULT_FILENAME}-result.xml`;
     return {
         'stdout': textSummary(data, { indent: ' ', enableColors: true }),
+        './loadtest-results.txt': textSummary(data, { indent: '\n ', enableColors: false }),
         './TESTS-loadtest-results.xml': jUnit(data),
     }
 }

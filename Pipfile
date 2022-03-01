@@ -1,0 +1,23 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+googletrans = "*"
+boto3 = "*"
+
+[dev-packages]
+pytest = "*"
+pytest-cov = "*"
+checkov = "*"
+black = "*"
+pytest-mock = "*"
+moto = {extras = ["dynamodb"], version = "*"}
+pytest-env = "*"
+
+[requires]
+python_version = "3"
+
+[pipenv]
+allow_prereleases = true

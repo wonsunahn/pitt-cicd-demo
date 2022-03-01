@@ -24,7 +24,7 @@ jobs:
 
       - name: Install pytest
         run: |
-          python -m pip install pytest pytest-cov
+          python -m pip install pytest pytest-cov pytest-env moto
           python -m pip install -e .
       
       - name: Running pytest
@@ -34,25 +34,27 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_version: 1.0.11
+          terraform_version: 1.1.6
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
       - name: Terraform Format
         id: fmt
         run: terraform fmt -check
         working-directory: ./infrastructure
 
-      - name: Terraform Init
-        id: init
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        run: terraform init
-        working-directory: ./infrastructure
+      # - name: Terraform Init
+      #   id: init
+      #   env:
+      #     TF_WORKSPACE: ${{ secrets.TF_WORKSPACE }}
+      #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #   run: terraform init
+      #   working-directory: ./infrastructure
 
-      - name: Terraform Validate
-        id: validate
-        run: terraform validate -no-color
-        working-directory: ./infrastructure
+      # - name: Terraform Validate
+      #   id: validate
+      #   run: terraform validate -no-color
+      #   working-directory: ./infrastructure
 
       - uses: actions/upload-artifact@v2
         with:
@@ -65,12 +67,17 @@ jobs:
         with:
           directory: infrastructure
           framework: terraform
-          output_format: junitxml
           soft_fail: true
-          skip_check: CKV_AWS_117,CKV_AWS_115,CKV_AWS_50,CKV_AWS_116,CKV_AWS_158,CKV_AWS_136,CKV_AWS_51
+          skip_check: CKV_AWS_117,CKV_AWS_115,CKV_AWS_50,CKV_AWS_116,CKV_AWS_158,CKV_AWS_136,CKV_AWS_51,CKV_AWS_119,CKV_AWS_28,CKV2_AWS_16
 
-      - name: Write Checkov Output
-        run: echo $CHECKOV_RESULTS > TESTS-checkov.xml
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          # Path to SARIF file relative to the root of the repository
+          sarif_file: results.sarif
+          # Optional category for the results
+          # Used to differentiate multiple results for one commit
+          category: checkov
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master

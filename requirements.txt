@@ -1,1 +1,1 @@
-googletrans
+boto3

@@ -24,7 +24,7 @@ EOF
 
 resource "aws_lambda_function" "function" {
 
-  function_name = "pitt-cicd-demo"
+  function_name = "pitt-cicd-demo-${var.environment}"
   description   = "My awesome lambda function"
   role          = aws_iam_role.lambda_exec.arn
   image_uri     = "${var.container_registry_url}:${var.image_tag}"
@@ -33,14 +33,14 @@ resource "aws_lambda_function" "function" {
 }
 
 resource "aws_apigatewayv2_api" "lambda" {
-  name          = "serverless_lambda_gw"
+  name          = "serverless-lambda-gw-${var.environment}"
   protocol_type = "HTTP"
 }
 
 resource "aws_apigatewayv2_stage" "lambda" {
   api_id = aws_apigatewayv2_api.lambda.id
 
-  name        = "test"
+  name        = var.environment
   auto_deploy = true
 
   access_log_settings {
@@ -92,3 +92,40 @@ resource "aws_lambda_permission" "api_gw" {
   source_arn = "arn:aws:execute-api:${data.aws_region.current.name}:${data.aws_caller_identity.current.id}:${aws_apigatewayv2_api.lambda.id}/*/*/*"
 }
 
+resource "aws_dynamodb_table" "translations" {
+  name           = "translations"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 5
+  write_capacity = 5
+  hash_key       = "lang"
+
+  attribute {
+    name = "lang"
+    type = "S"
+  }
+
+}
+
+resource "aws_dynamodb_table_item" "en" {
+  table_name = aws_dynamodb_table.translations.name
+  hash_key   = aws_dynamodb_table.translations.hash_key
+
+  item = <<ITEM
+{
+  "lang": {"S": "en"},
+  "message": {"S": "Hello World"}
+}
+ITEM
+}
+
+resource "aws_dynamodb_table_item" "es" {
+  table_name = aws_dynamodb_table.translations.name
+  hash_key   = aws_dynamodb_table.translations.hash_key
+
+  item = <<ITEM
+{
+  "lang": {"S": "es"},
+  "message": {"S": "Hola Mundo"}
+}
+ITEM
+}

@@ -21,8 +21,8 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          role-to-assume: ${{ secrets.TF_VAR_ASSUME_ROLE_ARN }}
-          role-duration-seconds: 900
+          #role-to-assume: ${{ secrets.TF_VAR_ASSUME_ROLE_ARN }}
+          #role-duration-seconds: 900
           aws-region: us-east-1
 
       - name: Login to Amazon ECR
@@ -41,6 +41,7 @@ jobs:
   testenvcreate:
     needs: container
     name: Test Environment Create
+    environment: test
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -49,12 +50,13 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_version: 1.0.11
+          terraform_version: 1.1.6
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
       - name: Terraform Init
         id: init
         env:
-          TF_WORKSPACE: test
+          TF_WORKSPACE: ${{ secrets.TF_WORKSPACE }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: terraform init
@@ -62,9 +64,9 @@ jobs:
 
       - name: Terraform Apply
         env:
-          TF_WORKSPACE: test
-          TF_VAR_assume_role_arn: ${{ secrets.TF_VAR_ASSUME_ROLE_ARN }}
+          TF_WORKSPACE: ${{ secrets.TF_WORKSPACE }}
           TF_VAR_image_tag: ${{ github.run_id }}
+          TF_VAR_environment: test
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: terraform apply -auto-approve
@@ -73,6 +75,7 @@ jobs:
   performance:
     needs: testenvcreate
     name: Performance Test
+    environment: test
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -81,13 +84,14 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_version: 1.0.11
+          terraform_version: 1.1.6
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
           terraform_wrapper: false
 
       - name: Terraform Init
         id: init
         env:
-          TF_WORKSPACE: test
+          TF_WORKSPACE: ${{ secrets.TF_WORKSPACE }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: terraform init
@@ -96,7 +100,7 @@ jobs:
       - name: Terraform Output
         id: tf_output
         env:
-          TF_WORKSPACE: test
+          TF_WORKSPACE: ${{ secrets.TF_WORKSPACE }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: echo ::set-output name=api_endpoint::$(terraform output api_endpoint)
@@ -109,7 +113,35 @@ jobs:
         env:
           API_ENDPOINT: ${{ steps.tf_output.outputs.api_endpoint }}
 
-      - name: Publish Unit Test Results
+      - name: Get Load Test Result
+        id: loadtest
+        run: echo ::set-output name=RESULT::$(cat loadtest-results.txt)
+
+      - name: Update Pull Request
+        uses: actions/github-script@0.9.0
+        env:
+          RESULT: "${{ steps.loadtest.outputs.RESULT }}"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `<details><summary>Load Test Results</summary>
+
+            \`\`\`\n
+            ${process.env.RESULT}
+            \`\`\`
+
+            </details>
+
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+
+      - name: Publish Load Test Results
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: always()
         with:
@@ -119,6 +151,7 @@ jobs:
   testenvdestroy:
     needs: performance
     name: Test Environment Destroy
+    environment: test
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -128,12 +161,13 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_version: 1.0.11
+          terraform_version: 1.1.6
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
       - name: Terraform Init
         id: init
         env:
-          TF_WORKSPACE: test
+          TF_WORKSPACE: ${{ secrets.TF_WORKSPACE }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: terraform init
@@ -141,17 +175,35 @@ jobs:
 
       - name: Terraform Destroy
         env:
-          TF_WORKSPACE: test
-          TF_VAR_assume_role_arn: ${{ secrets.TF_VAR_ASSUME_ROLE_ARN }}
+          TF_WORKSPACE: ${{ secrets.TF_WORKSPACE }}
           TF_VAR_image_tag: ${{ github.run_id }}
+          TF_VAR_environment: test
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: terraform destroy -auto-approve
         working-directory: ./infrastructure
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          #role-to-assume: ${{ secrets.TF_VAR_ASSUME_ROLE_ARN }}
+          #role-duration-seconds: 900
+          aws-region: us-east-1
+
+      - name: Clean Up Test Image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: pitt-cicd-demo
+          IMAGE_TAG: ${{ github.run_id }}
+        run: |
+          aws ecr batch-delete-image --repository-name $ECR_REPOSITORY --image-ids imageTag=$IMAGE_TAG
+
   terraform:
     needs: testenvdestroy
     name: Terraform Plan
+    environment: prod
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -161,7 +213,8 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_version: 1.0.11
+          terraform_version: 1.1.6
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
       - name: Terraform Format
         id: fmt
@@ -171,6 +224,7 @@ jobs:
       - name: Terraform Init
         id: init
         env:
+          TF_WORKSPACE: ${{ secrets.TF_WORKSPACE }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: terraform init
@@ -179,6 +233,7 @@ jobs:
       - name: Terraform Validate
         id: validate
         env:
+          TF_WORKSPACE: ${{ secrets.TF_WORKSPACE }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: terraform validate -no-color
@@ -189,8 +244,9 @@ jobs:
         run: terraform plan -no-color
         working-directory: ./infrastructure
         env:
-          TF_VAR_assume_role_arn: ${{ secrets.TF_VAR_ASSUME_ROLE_ARN }}
+          TF_WORKSPACE: ${{ secrets.TF_WORKSPACE }}
           TF_VAR_image_tag: latest
+          TF_VAR_environment: prod
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         continue-on-error: true

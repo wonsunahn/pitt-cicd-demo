@@ -1,1 +1,1 @@
-container_registry_url = "668998518041.dkr.ecr.us-east-1.amazonaws.com/pitt-cicd-demo"
+container_registry_url = "432176638699.dkr.ecr.us-east-1.amazonaws.com/pitt-cicd-demo"

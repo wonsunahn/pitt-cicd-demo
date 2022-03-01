@@ -1,0 +1,26 @@
+[
+    {
+        "lang": "en",
+        "message": "Hello World"
+    },
+    {
+        "lang": "es",
+        "message": "Hola Mundo"
+    },
+    {
+        "lang": "it",
+        "message": "Ciao mondo"
+    },
+    {
+        "lang": "ru",
+        "message": "Привет мир"
+    },
+    {
+        "lang": "fr",
+        "message": "Bonjour le monde"
+    },
+    {
+        "lang": "ir",
+        "message": "Dia duit ar domhan"
+    }
+]
