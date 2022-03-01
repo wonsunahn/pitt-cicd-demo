@@ -7,16 +7,13 @@ jobs:
     name: Deploy
     environment: prod
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./infrastructure
     steps:
       - name: Check out code
         uses: actions/checkout@v2
 
       - name: Get the version
         id: get_version
-        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//v}
     
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
