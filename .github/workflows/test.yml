@@ -24,7 +24,7 @@ jobs:
 
       - name: Install pytest
         run: |
-          python -m pip install pytest pytest-cov
+          python -m pip install pytest pytest-cov pytest-env moto
           python -m pip install -e .
       
       - name: Running pytest
@@ -34,7 +34,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_version: 1.0.11
+          terraform_version: 1.1.6
 
       - name: Terraform Format
         id: fmt
