@@ -13,6 +13,8 @@ pytest-cov = "*"
 checkov = "*"
 black = "*"
 pytest-mock = "*"
+moto = {extras = ["dynamodb"], version = "*"}
+pytest-env = "*"
 
 [requires]
 python_version = "3"

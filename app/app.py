@@ -8,67 +8,6 @@ TABLE_NAME = os.environ["TableName"]
 IS_DEVELOPMENT = os.environ["STAGE"] == "DEVELOPMENT"
 
 
-def get_dynamo_db_client():
-    """Set the dynamodb instance based on environment"""
-    if IS_DEVELOPMENT:
-        # Set the boto3 session for dynamodb if its development environment
-        dynamo_db_session = boto3.Session(profile_name="default")
-        return dynamo_db_session.resource("dynamodb")
-    else:
-        return boto3.resource("dynamodb")
-
-
-DYNAMO_DB = get_dynamo_db_client()
-
-
-def get_message(lang):
-    """
-    This function will check the entry in dynamodb if exists will return item
-    :param lang
-    :return: message or return NoRecordError Exception
-    """
-
-    table = DYNAMO_DB.Table(TABLE_NAME)
-
-    response = table.get_item(
-        Key={"lang": {"S": lang}},
-        ProjectionExpression="lang, message",
-        ConsistentRead=True,
-    )
-
-    # time.sleep(1)
-
-    if "Item" not in response:
-        raise NoRecordError("No Record Found.")
-    else:
-        return response["Item"]
-
-
-def lambda_handler(event, context):
-    if event["queryStringParameters"] == None:
-        lang = "en"
-    else:
-        lang = event["queryStringParameters"]["lang"]
-
-    try:
-        if event["queryStringParameters"] == None:
-            lang = "en"
-        else:
-            lang = event["queryStringParameters"]["lang"]
-
-        result = get_message(lang)
-
-        return {
-            "statusCode": 200,
-            "headers": {
-                "Content-Type": "application/json",
-            },
-            "body": json.dumps(result, default=lambda o: o.__dict__),
-        }
-    except Exception as e:
-        return {"statusCode": 500, "error": str(e)}
-
-
 class Error(Exception):
     """Base class for other exceptions"""
 
@@ -81,7 +20,61 @@ class NoRecordError(Error):
     pass
 
 
-if __name__ == "__main__":
-    lang = "en"
-    message = get_message(lang)
-    print(message)
+class ResultEntity:
+    def __init__(self, lang, message):
+        """
+        This function used to initiate values to the class variables
+        """
+        self.Lang = lang
+        self.Message = message
+
+
+class DbEntity:
+    def __init__(self, lang):
+        """
+        This function used to initiate values to the class variables
+        """
+        self.Lang = lang
+
+
+def lambda_handler(event, context):
+    try:
+        if event["queryStringParameters"] == None:
+            lang = "en"
+        else:
+            lang = event["queryStringParameters"]["lang"]
+
+        record = get_message(DbEntity(lang))
+        result = ResultEntity(**record)
+
+        return {
+            "statusCode": 200,
+            "headers": {
+                "Content-Type": "application/json",
+            },
+            "body": json.dumps(result, default=lambda o: o.__dict__),
+        }
+    except Exception as e:
+        return {"statusCode": 500, "error": str(e)}
+
+
+def get_message(item):
+    """
+    This function will check the entry in dynamodb if exists will return item
+    :param lang
+    :return: message or return NoRecordError Exception
+    """
+
+    dynamodb = boto3.resource("dynamodb")
+    table = dynamodb.Table(TABLE_NAME)
+
+    response = table.get_item(
+        Key={"lang": item.Lang},
+    )
+
+    # time.sleep(1)
+
+    if "Item" not in response:
+        raise NoRecordError("No Records Found.")
+    else:
+        return response["Item"]

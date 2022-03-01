@@ -1,5 +1,10 @@
-from contextlib import nullcontext
-from app.app import handler, get_message
+import boto3
+import pytest
+import json
+
+from moto import mock_dynamodb2
+from app.app import lambda_handler, get_message
+
 
 DYNAMODBRESPONSE = {
     "Item": {"lang": {"S": "en"}, "message": {"S": "Hello World"}},
@@ -95,24 +100,51 @@ EVENTRESPONSE = {
     "isBase64Encoded": False,
 }
 
-
-def test_get_message(mocker):
-    mocker.patch("app.app.boto3.client.get_item", return_value=DYNAMODBRESPONSE)
-    assert get_message("en") == [{"lang": "en", "message": "Hello World"}]
+TXNS_TABLE = "Translations"
 
 
-def test_handler():
+@pytest.fixture
+def use_moto():
+    @mock_dynamodb2
+    def dynamodb_client():
+        dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
+
+        # Create the table
+        dynamodb.create_table(
+            TableName=TXNS_TABLE,
+            KeySchema=[{"AttributeName": "lang", "KeyType": "HASH"}],
+            AttributeDefinitions=[
+                {"AttributeName": "lang", "AttributeType": "S"},
+            ],
+            BillingMode="PAY_PER_REQUEST",
+        )
+        return dynamodb
+
+    return dynamodb_client
+
+
+@mock_dynamodb2
+def test_handler_for_failure(use_moto):
+    use_moto()
     event = EVENTRESPONSE
 
-    output = handler(event, nullcontext)
+    return_data = lambda_handler(event, "")
+    assert return_data["statusCode"] == 500
+    assert return_data["error"] == "No Records Found."
 
-    assert output["statusCode"] == 200
-    assert output["body"] == '[{"lang": "en", "message": "Hello World"}]'
 
+@mock_dynamodb2
+def test_handler_for_status_ok(use_moto):
+    use_moto()
+    table = boto3.resource("dynamodb", region_name="us-east-1").Table(TXNS_TABLE)
+    table.put_item(Item={"lang": "en", "message": "Hello World"})
 
-def test_handler_error():
-    event = {}
-    event["queryStringParameters"] = None
-    output = handler(event, nullcontext)
+    event = EVENTRESPONSE
 
-    assert output["statusCode"] == 200
+    return_data = lambda_handler(event, "")
+    print(json.dumps(return_data, indent=2))
+    body = json.loads(return_data["body"])
+
+    assert return_data["statusCode"] == 200
+    assert body["Lang"] == "en"
+    assert body["Message"] == "Hello World"
