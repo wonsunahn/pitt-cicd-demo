@@ -27,6 +27,7 @@ make install
 Build container image
 ```
 docker build pitt-cicd-demo .
+docker scan pitt-cicd-demo
 ```
 
 ## Local Test environment
