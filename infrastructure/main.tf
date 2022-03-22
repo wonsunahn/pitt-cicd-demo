@@ -24,7 +24,7 @@ EOF
 
 data "tfe_outputs" "shared" {
   organization = "devans10"
-  workspace    = "shared"
+  workspace    = "pitt-cicd-demo-shared"
 }
 
 resource "aws_lambda_function" "function" {
