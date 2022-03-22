@@ -32,7 +32,7 @@ resource "aws_lambda_function" "function" {
   function_name = "pitt-cicd-demo-${var.environment}"
   description   = "My awesome lambda function"
   role          = aws_iam_role.lambda_exec.arn
-  image_uri     = "${data.tfe_outputs.shared.ecr_repository_url}:${var.image_tag}"
+  image_uri     = "${data.tfe_outputs.shared.values.ecr_repository_url}:${var.image_tag}"
   package_type  = "Image"
 
   environment {
