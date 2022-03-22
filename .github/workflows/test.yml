@@ -56,23 +56,27 @@ jobs:
       #   run: terraform validate -no-color
       #   working-directory: ./infrastructure
 
-      - name: Test with Checkov
-        id: checkov
-        uses: bridgecrewio/checkov-action@master
+      # - name: Test with Checkov
+      #   id: checkov
+      #   uses: bridgecrewio/checkov-action@master
+      #   with:
+      #     directory: infrastructure
+      #     framework: terraform
+      #     soft_fail: true
+      #     skip_check: CKV_AWS_117,CKV_AWS_115,CKV_AWS_50,CKV_AWS_116,CKV_AWS_158,CKV_AWS_136,CKV_AWS_51,CKV_AWS_119,CKV_AWS_28,CKV2_AWS_16,CKV_AWS_173
+
+      - name: Scan Infrastructure as Code
+        uses: snyk/actions/iac@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          directory: infrastructure
-          framework: terraform
-          soft_fail: true
-          skip_check: CKV_AWS_117,CKV_AWS_115,CKV_AWS_50,CKV_AWS_116,CKV_AWS_158,CKV_AWS_136,CKV_AWS_51,CKV_AWS_119,CKV_AWS_28,CKV2_AWS_16,CKV_AWS_173
+          args: --severity-threshold=low
 
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v1
         with:
-          # Path to SARIF file relative to the root of the repository
-          sarif_file: results.sarif
-          # Optional category for the results
-          # Used to differentiate multiple results for one commit
-          category: checkov
+          sarif_file: snyk.sarif
+          category: iac
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
