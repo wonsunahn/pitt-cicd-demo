@@ -7,5 +7,34 @@
 + k6
 + checkov
 + terraform
++ python
++ docker
 
-co
+## Prepare Development Environment
+
+Clone repository
+```
+git clone https://github.com/devans10/pitt-cicd-demo.git
+cd pitt-cicd-demo
+```
+
+Install python dependancies
+```
+make install
+```
+
+## Build 
+Build container image
+```
+docker build pitt-cicd-demo .
+```
+
+## Local Test environment
+```
+docker-compose up
+```
+
+## Running tests
+Unit Tests
+```
+make test
