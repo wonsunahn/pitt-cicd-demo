@@ -6,7 +6,7 @@ export const options = {
     duration: '1m',
     vus: 5,
     thresholds: {
-        http_req_duration: ['p(95)<500']
+        http_req_duration: ['p(95)<750']
     },
 };
 export default function () {
