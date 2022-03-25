@@ -39,17 +39,21 @@ jobs:
 
       - name: Scan Container Image
         uses: snyk/actions/docker@master
+        continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           image: ${{ steps.login-ecr.outputs.registry }}/pitt-cicd-demo:${{ github.run_id }}
+          sarif: false
           args: --file=Dockerfile
+            --severity-threshold=low
+            --sarif-file-output=container.snyk.sarif
           
       - name: Upload SARIF file
         if: always()
         uses: github/codeql-action/upload-sarif@v1
         with:
-          sarif_file: snyk.sarif
+          sarif_file: container.snyk.sarif
           category: container
 
       - name: Push image to Amazon ECR
