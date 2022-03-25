@@ -1,3 +1,8 @@
+resource "aws_kms_key" "ecr" {
+  description             = "ECR KMS key"
+  deletion_window_in_days = 10
+}
+
 resource "aws_ecr_repository" "repo" {
   name                 = "pitt-cicd-demo"
   image_tag_mutability = "IMMUTABLE"
@@ -7,7 +12,8 @@ resource "aws_ecr_repository" "repo" {
   }
 
   encryption_configuration {
-    encryption_type = "AES256"
+    encryption_type = "KMS"
+    kms_key         = aws_kms_key.ecr.arn
   }
 }
 
