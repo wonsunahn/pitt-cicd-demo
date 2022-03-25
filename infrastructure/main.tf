@@ -104,7 +104,7 @@ resource "aws_cloudwatch_log_group" "api_gw" {
 
   retention_in_days = 7
 
-  kms_key_id = aws_kms_key.this.id
+  kms_key_id = aws_kms_key.this.arn
 }
 
 resource "aws_lambda_permission" "api_gw" {
