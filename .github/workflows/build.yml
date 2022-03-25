@@ -44,6 +44,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           image: ${{ steps.login-ecr.outputs.registry }}/pitt-cicd-demo:${{ github.run_id }}
+          sarif: false
           args: --file=Dockerfile
             --severity-threshold=low
             --sarif-file-output=container.snyk.sarif
