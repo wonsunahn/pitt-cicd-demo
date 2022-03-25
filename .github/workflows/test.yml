@@ -68,7 +68,6 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: --sarif-file-output=python.snyk.sarif
-          sarif: false
 
       - name: Scan Infrastructure as Code
         uses: snyk/actions/iac@master
@@ -77,7 +76,6 @@ jobs:
         with:
           args: --severity-threshold=low
             --sarif-file-output=terraform.snyk.sarif
-          sarif: false
 
       - name: Upload SARIF file
         if: always()
