@@ -27,6 +27,14 @@ data "tfe_outputs" "shared" {
   workspace    = "pitt-cicd-demo-shared"
 }
 
+# resource "aws_kms_key" "this" {
+#   description             = "KMS key"
+#   deletion_window_in_days = 10
+#   policy                  = data.aws_iam_policy_document.this.json
+
+#   enable_key_rotation = true
+# }
+
 resource "aws_lambda_function" "function" {
 
   function_name = "pitt-cicd-demo-${var.environment}"
@@ -39,6 +47,10 @@ resource "aws_lambda_function" "function" {
     variables = {
       TableName = aws_dynamodb_table.translations.name
     }
+  }
+
+  tracing_config {
+    mode = "PassThrough"
   }
 
 }
@@ -92,6 +104,8 @@ resource "aws_cloudwatch_log_group" "api_gw" {
   name = "/aws/api_gw/${aws_apigatewayv2_api.lambda.name}"
 
   retention_in_days = 7
+
+  #kms_key_id = aws_kms_key.this.arn
 }
 
 resource "aws_lambda_permission" "api_gw" {
@@ -110,10 +124,19 @@ resource "aws_dynamodb_table" "translations" {
   write_capacity = 5
   hash_key       = "lang"
 
+  point_in_time_recovery {
+    enabled = true
+  }
+
   attribute {
     name = "lang"
     type = "S"
   }
+
+  # server_side_encryption {
+  #   enabled     = true
+  #   kms_key_arn = aws_kms_key.this.arn
+  # }
 
 }
 
@@ -166,3 +189,32 @@ resource "aws_iam_role_policy" "lambda_policy" {
 }
 
 
+data "aws_iam_policy_document" "this" {
+
+  statement {
+    sid = "AllowCloudWatchLogs01"
+
+    actions = [
+      "kms:Encrypt*",
+      "kms:Decrypt*",
+      "kms:ReEncrypt*",
+      "kms:GenerateDataKey*",
+      "kms:Describe*"
+    ]
+
+    effect = "Allow"
+
+    principals {
+      type = "Service"
+
+      identifiers = [
+        format(
+          "logs.%s.amazonaws.com",
+          data.aws_region.current.name
+        )
+      ]
+    }
+
+    resources = ["*"]
+  }
+}
