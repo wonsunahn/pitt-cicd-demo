@@ -1,6 +1,8 @@
 resource "aws_kms_key" "ecr" {
   description             = "ECR KMS key"
   deletion_window_in_days = 10
+
+  enable_key_rotation = true
 }
 
 resource "aws_ecr_repository" "repo" {
