@@ -74,7 +74,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --severity-threshold=low
+          args: --severity-threshold=high
             --sarif-file-output=terraform.snyk.sarif
 
       - name: Upload SARIF file

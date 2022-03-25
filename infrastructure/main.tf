@@ -27,13 +27,13 @@ data "tfe_outputs" "shared" {
   workspace    = "pitt-cicd-demo-shared"
 }
 
-resource "aws_kms_key" "this" {
-  description             = "KMS key"
-  deletion_window_in_days = 10
-  policy                  = data.aws_iam_policy_document.this.json
+# resource "aws_kms_key" "this" {
+#   description             = "KMS key"
+#   deletion_window_in_days = 10
+#   policy                  = data.aws_iam_policy_document.this.json
 
-  enable_key_rotation = true
-}
+#   enable_key_rotation = true
+# }
 
 resource "aws_lambda_function" "function" {
 
@@ -105,7 +105,7 @@ resource "aws_cloudwatch_log_group" "api_gw" {
 
   retention_in_days = 7
 
-  kms_key_id = aws_kms_key.this.arn
+  #kms_key_id = aws_kms_key.this.arn
 }
 
 resource "aws_lambda_permission" "api_gw" {
@@ -133,10 +133,10 @@ resource "aws_dynamodb_table" "translations" {
     type = "S"
   }
 
-  server_side_encryption {
-    enabled     = true
-    kms_key_arn = aws_kms_key.this.arn
-  }
+  # server_side_encryption {
+  #   enabled     = true
+  #   kms_key_arn = aws_kms_key.this.arn
+  # }
 
 }
 
