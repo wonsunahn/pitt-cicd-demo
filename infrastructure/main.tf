@@ -110,6 +110,10 @@ resource "aws_dynamodb_table" "translations" {
   write_capacity = 5
   hash_key       = "lang"
 
+  point_in_time_recovery {
+    enabled = true
+  }
+
   attribute {
     name = "lang"
     type = "S"
