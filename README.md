@@ -158,6 +158,9 @@ Your GitHub Actions Workflow will NOT run yet. Leave the SonarCloud page open an
 8. On the right-hand side. Add a tag to your workspace called `pitt-cicd-demo`
 ![Workspace Tag](/assets/terraform-workspace-tag.png)
 
+9. Go to the Settings -> General section, Set the "Execution Mode" to local. Save the settings
+![Workspace Setting](/assets/terraform-workspace-settings.png)
+
 9. At the top of the page, go to "Workspaces" and click "+ Workspace"
 ![Workspace Add](/assets/terraform-add-workspace.png)
 
@@ -165,11 +168,13 @@ Your GitHub Actions Workflow will NOT run yet. Leave the SonarCloud page open an
     + Workflow: `CLI-driven workflow`
     + Name: `pitt-cicd-demo-prod`
     + Tag: `pitt-cicd-demo`
+    + Execution Mode: `local`
 
 12. Add a 3rd Workspace:
     + Workflow: `CLI-driven workflow`
     + Name: `pitt-cicd-demo-test`
     + Tag: `pitt-cicd-demo`
+    + Execution Mode: `local`
 
 13. In the top right corner, click your user icon and select "User Settings"
 ![Terraform User Settings](/assets/terraform-user-settings.png)
@@ -296,4 +301,107 @@ see any changes that are required for your infrastructure.
 
 If you ever set or change modules or Terraform Settings, run "terraform init"
 again to reinitialize your working directory.
+```
+
+4. Run `terraform plan`
+
+```
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # aws_ecr_lifecycle_policy.policy will be created
+  + resource "aws_ecr_lifecycle_policy" "policy" {
+      + id          = (known after apply)
+      + policy      = jsonencode(
+            {
+              + rules = [
+                  + {
+                      + action       = {
+                          + type = "expire"
+                        }
+                      + description  = "Keep last 2 images"
+                      + rulePriority = 1
+                      + selection    = {
+                          + countNumber   = 2
+                          + countType     = "imageCountMoreThan"
+                          + tagPrefixList = [
+                              + "v",
+                            ]
+                          + tagStatus     = "tagged"
+                        }
+                    },
+                ]
+            }
+        )
+      + registry_id = (known after apply)
+      + repository  = "pitt-cicd-demo"
+    }
+
+  # aws_ecr_repository.repo will be created
+  + resource "aws_ecr_repository" "repo" {
+      + arn                  = (known after apply)
+      + id                   = (known after apply)
+      + image_tag_mutability = "IMMUTABLE"
+      + name                 = "pitt-cicd-demo"
+      + registry_id          = (known after apply)
+      + repository_url       = (known after apply)
+      + tags_all             = (known after apply)
+
+      + encryption_configuration {
+          + encryption_type = "KMS"
+          + kms_key         = (known after apply)
+        }
+
+      + image_scanning_configuration {
+          + scan_on_push = true
+        }
+    }
+
+  # aws_kms_key.ecr will be created
+  + resource "aws_kms_key" "ecr" {
+      + arn                                = (known after apply)
+      + bypass_policy_lockout_safety_check = false
+      + customer_master_key_spec           = "SYMMETRIC_DEFAULT"
+      + deletion_window_in_days            = 10
+      + description                        = "ECR KMS key"
+      + enable_key_rotation                = true
+      + id                                 = (known after apply)
+      + is_enabled                         = true
+      + key_id                             = (known after apply)
+      + key_usage                          = "ENCRYPT_DECRYPT"
+      + multi_region                       = (known after apply)
+      + policy                             = (known after apply)
+      + tags_all                           = (known after apply)
+    }
+
+Plan: 3 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  + ecr_repository_url = (known after apply)
+
+```
+5. Run `terraform apply`, enter `yes` when prompted to confirm the apply.
+
+
+```
+Do you want to perform these actions in workspace "pitt-cicd-demo-shared"?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+aws_kms_key.ecr: Creating...
+aws_kms_key.ecr: Creation complete after 4s [id=4c2ec58b-8948-4fa5-8af9-13c15fce7af8]
+aws_ecr_repository.repo: Creating...
+aws_ecr_repository.repo: Creation complete after 0s [id=pitt-cicd-demo]
+aws_ecr_lifecycle_policy.policy: Creating...
+aws_ecr_lifecycle_policy.policy: Creation complete after 0s [id=pitt-cicd-demo]
+
+Apply complete! Resources: 3 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+ecr_repository_url = "433366580096.dkr.ecr.us-east-1.amazonaws.com/pitt-cicd-demo"
 ```
