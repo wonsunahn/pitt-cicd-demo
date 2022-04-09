@@ -3,43 +3,29 @@
 
 # pitt-cicd-demo
 
+This project is a demonstration of a CI/CD pipeline with a concentration on showcasing automated testing.
+
+The code deploys a "Hello World" API endpoint.  Once deployed, the terraform output will give the API Endpoint, which can be called using the below command.
+
+```
+curl -X GET https://<endpoint>/prod/getHello?lang=en
+```
+
+The output should return a message with "Hello World"
+
+The language can be changed for loaded translations
+
+```
+curl -X GET https://<endpoint>/prod/getHello?lang=es
+```
+
+Returns "Hola Mundo"
+
+
 ## Prerequisites
 
 + awscli - [Install Instructions](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 + terraform - [Install Instructions](https://learn.hashicorp.com/tutorials/terraform/install-cli)
-
-
-## Prepare Development Environment
-
-Clone repository
-```
-git clone https://github.com/devans10/pitt-cicd-demo.git
-cd pitt-cicd-demo
-```
-
-Install python dependancies
-```
-make install
-```
-
-## Build 
-Build container image
-```
-docker build pitt-cicd-demo .
-docker scan pitt-cicd-demo
-```
-
-## Local Test environment
-```
-docker-compose up
-```
-
-## Running tests
-Unit Tests
-```
-make test
-
-```
 
 # CI/CD Setup
 
