@@ -1,4 +1,6 @@
-FROM public.ecr.aws/lambda/python:3
+FROM public.ecr.aws/lambda/python:3.8
+
+RUN yum -y update
 
 # Copy function code
 COPY app/app.py ${LAMBDA_TASK_ROOT}
